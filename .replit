@@ -43,6 +43,15 @@ mode = "sequential"
 task = "shell.exec"
 args = "python run_bots.py"
 
+[[workflows.workflow]]
+name = "Run All Bots"
+author = 41472454
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python run_bots.py"
+
 [[ports]]
 localPort = 5000
 externalPort = 80

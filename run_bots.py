@@ -1,9 +1,10 @@
+
 import os
 import logging
 import time
 import traceback
 import sys
-from app import app
+from app import app, db
 
 # Setup logging
 logging.basicConfig(
@@ -16,106 +17,110 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def run_registration_bot():
-    """Run the registration bot separately for debugging"""
-    try:
-        from telegram_bots import REGISTRATION_BOT_TOKEN, RegistrationBot
-        logger.info(f"Registration Bot Token present: {bool(REGISTRATION_BOT_TOKEN)}")
-        
-        if REGISTRATION_BOT_TOKEN:
-            logger.info("Starting Registration Bot...")
-            registration_bot = RegistrationBot()
-            registration_bot.start_bot()
-            logger.info("Registration Bot started successfully.")
-        else:
-            logger.warning("Registration Bot Token not provided.")
-    except Exception as e:
-        logger.error(f"Error running Registration Bot: {str(e)}")
-        logger.error(traceback.format_exc())
+def check_environment():
+    """Check if all required environment variables are set"""
+    required_tokens = [
+        "REGISTRATION_BOT_TOKEN",
+        "SUPPORT_BOT_TOKEN", 
+        "NEWS_BOT_TOKEN",
+        "STAFF_BOT_TOKEN"
+    ]
+    
+    missing = []
+    for token in required_tokens:
+        if not os.environ.get(token):
+            missing.append(token)
+    
+    if missing:
+        logger.error(f"Missing environment variables: {', '.join(missing)}")
+        return False
+    return True
 
-def run_support_bot():
-    """Run the support bot separately for debugging"""
+def init_database():
+    """Initialize database tables"""
     try:
-        from telegram_bots import SUPPORT_BOT_TOKEN, SupportBot
-        logger.info(f"Support Bot Token present: {bool(SUPPORT_BOT_TOKEN)}")
-        
-        if SUPPORT_BOT_TOKEN:
-            logger.info("Starting Support Bot...")
-            support_bot = SupportBot()
-            support_bot.start_bot()
-            logger.info("Support Bot started successfully.")
-        else:
-            logger.warning("Support Bot Token not provided.")
+        with app.app_context():
+            db.create_all()
+            logger.info("Database initialized successfully")
+        return True
     except Exception as e:
-        logger.error(f"Error running Support Bot: {str(e)}")
-        logger.error(traceback.format_exc())
+        logger.error(f"Database initialization error: {str(e)}")
+        return False
 
-def run_news_bot():
-    """Run the news bot separately for debugging"""
+def run_bot(bot_class, bot_name, token_name):
+    """Run a single bot with error handling"""
     try:
-        from telegram_bots import NEWS_BOT_TOKEN, NewsBot
-        logger.info(f"News Bot Token present: {bool(NEWS_BOT_TOKEN)}")
+        from telegram_bots import RegistrationBot, SupportBot, NewsBot, StaffBot
+        token = os.environ.get(token_name)
         
-        if NEWS_BOT_TOKEN:
-            logger.info("Starting News Bot...")
-            news_bot = NewsBot()
-            news_bot.start_bot()
-            logger.info("News Bot started successfully.")
-        else:
-            logger.warning("News Bot Token not provided.")
-    except Exception as e:
-        logger.error(f"Error running News Bot: {str(e)}")
-        logger.error(traceback.format_exc())
-
-def run_staff_bot():
-    """Run the staff bot separately for debugging"""
-    try:
-        from telegram_bots import STAFF_BOT_TOKEN, StaffBot
-        logger.info(f"Staff Bot Token present: {bool(STAFF_BOT_TOKEN)}")
+        if not token:
+            logger.warning(f"{bot_name} Token not provided.")
+            return False
+            
+        logger.info(f"Starting {bot_name}...")
+        bot = bot_class()
+        bot.start_bot()
+        logger.info(f"{bot_name} started successfully.")
+        return True
         
-        if STAFF_BOT_TOKEN:
-            logger.info("Starting Staff Bot...")
-            staff_bot = StaffBot()
-            staff_bot.start_bot()
-            logger.info("Staff Bot started successfully.")
-        else:
-            logger.warning("Staff Bot Token not provided.")
     except Exception as e:
-        logger.error(f"Error running Staff Bot: {str(e)}")
+        logger.error(f"Error running {bot_name}: {str(e)}")
         logger.error(traceback.format_exc())
+        return False
 
-if __name__ == "__main__":
+def main():
+    """Main function to run all bots"""
     logger.info("Starting JBC Telegram bots...")
     
+    # Check environment variables
+    if not check_environment():
+        logger.error("Environment check failed")
+        return 1
+        
     try:
+        # Import and check telegram package
+        import telegram
+        logger.info(f"Python-telegram-bot version: {telegram.__version__}")
+        
+        # Initialize database
+        if not init_database():
+            return 1
+            
         # Use Flask application context
         with app.app_context():
-            logger.info("Checking Python version and telegram package...")
-            logger.info(f"Python version: {sys.version}")
+            from telegram_bots import RegistrationBot, SupportBot, NewsBot, StaffBot
             
-            try:
-                import telegram
-                logger.info(f"Python-telegram-bot version: {telegram.__version__}")
-            except ImportError:
-                logger.error("Failed to import telegram package. Please install it with: pip install python-telegram-bot==13.7")
-                sys.exit(1)
-            except Exception as e:
-                logger.error(f"Error importing telegram: {str(e)}")
-                logger.error(traceback.format_exc())
+            bots = [
+                (RegistrationBot, "Registration Bot", "REGISTRATION_BOT_TOKEN"),
+                (SupportBot, "Support Bot", "SUPPORT_BOT_TOKEN"),
+                (NewsBot, "News Bot", "NEWS_BOT_TOKEN"),
+                (StaffBot, "Staff Bot", "STAFF_BOT_TOKEN")
+            ]
             
-            # Run each bot separately for better error isolation
-            run_registration_bot()
-            run_support_bot()
-            run_news_bot()
-            run_staff_bot()
+            running_bots = []
+            for bot_class, name, token in bots:
+                if run_bot(bot_class, name, token):
+                    running_bots.append(name)
+            
+            if not running_bots:
+                logger.error("No bots were started successfully")
+                return 1
+                
+            logger.info(f"Successfully started bots: {', '.join(running_bots)}")
             
             # Keep the main thread alive
-            logger.info("Bots are running. Press Ctrl+C to exit.")
             while True:
                 time.sleep(60)
+                logger.info("Bots still running...")
                 
     except KeyboardInterrupt:
         logger.info("Telegram bots stopped by user.")
     except Exception as e:
         logger.error(f"Error running Telegram bots: {str(e)}")
         logger.error(traceback.format_exc())
+        return 1
+        
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())
