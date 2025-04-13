@@ -670,7 +670,14 @@ class NewsBot:
         self.dispatcher.add_error_handler(self.error_handler)
         
         # Schedule job to send daily news digest
-        scheduler.add_job(id='daily_news_digest', func=self.send_daily_digest, trigger='cron', hour=8, minute=0)
+        scheduler.add_job(
+        id='daily_news_digest',
+        func=self.send_daily_digest,
+        trigger='cron',
+        hour=8,
+        minute=0,
+        timezone=pytz.UTC
+    )
     
     def start(self, update: Update, context: CallbackContext):
         """Start command handler"""
