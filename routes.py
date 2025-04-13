@@ -863,14 +863,48 @@ def utility_processor():
     )
 
 # Error handlers
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template('errors/404.html'), 404
+@app.errorhandler(400)
+def bad_request(e):
+    return render_template('errors/400.html', error=str(e)), 400
 
-@app.errorhandler(500)
-def internal_server_error(e):
-    return render_template('errors/500.html'), 500
+@app.errorhandler(401)
+def unauthorized(e):
+    return render_template('errors/401.html', error=str(e)), 401
 
 @app.errorhandler(403)
 def forbidden(e):
-    return render_template('errors/403.html'), 403
+    return render_template('errors/403.html', error=str(e)), 403
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('errors/404.html', error=str(e)), 404
+
+@app.errorhandler(405)
+def method_not_allowed(e):
+    return render_template('errors/405.html', error=str(e)), 405
+
+@app.errorhandler(408)
+def request_timeout(e):
+    return render_template('errors/408.html', error=str(e)), 408
+
+@app.errorhandler(429)
+def too_many_requests(e):
+    return render_template('errors/429.html', error=str(e)), 429
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    logging.error(f"500 error: {str(e)}")
+    return render_template('errors/500.html', error=str(e)), 500
+
+@app.errorhandler(502)
+def bad_gateway(e):
+    return render_template('errors/502.html', error=str(e)), 502
+
+@app.errorhandler(503)
+def service_unavailable(e):
+    return render_template('errors/503.html', error=str(e)), 503
+
+@app.errorhandler(Exception)
+def handle_unhandled_error(e):
+    logging.error(f"Unhandled error: {str(e)}")
+    return render_template('errors/500.html', error="An unexpected error occurred"), 500

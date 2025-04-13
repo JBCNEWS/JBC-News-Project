@@ -1,0 +1,25 @@
+
+{% extends "layout.html" %}
+
+{% block title %}Too Many Requests | JBC News{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body text-center p-5">
+                    <h1 class="display-1 text-warning mb-4">429</h1>
+                    <h2 class="mb-4">Too Many Requests</h2>
+                    <p class="lead mb-4">Please slow down. You've made too many requests.</p>
+                    <p class="text-muted mb-4">{{ error }}</p>
+                    <p class="mb-4">Try again in a few minutes.</p>
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i> Back to Homepage
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
