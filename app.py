@@ -1,5 +1,6 @@
 import os
 import logging
+import pytz
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
@@ -101,5 +102,11 @@ def load_user(user_id):
 from news_fetcher import fetch_all_news
 with app.app_context():
     # Schedule news fetching every 30 minutes
-    scheduler.add_job(id='fetch_news', func=fetch_all_news, trigger='interval', minutes=30)
+    scheduler.add_job(
+        id='fetch_news', 
+        func=fetch_all_news, 
+        trigger='interval', 
+        minutes=30, 
+        timezone=pytz.timezone('UTC')
+    )
     logger.info("News fetching scheduler started")
