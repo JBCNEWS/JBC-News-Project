@@ -1,0 +1,5 @@
+Started at: 2025-04-13 16:45:39
+PID: 3879
+Python version: 3.11.10 (main, Sep  7 2024, 01:03:31) [GCC 13.3.0]
+Working directory: /home/runner/workspace
+Log file: jbc_bots_20250413_164539.log
