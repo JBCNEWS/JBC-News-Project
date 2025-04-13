@@ -1,0 +1,14 @@
+[Unit]
+Description=JBC Telegram Bots Service
+After=network.target
+
+[Service]
+Type=simple
+User=runner
+WorkingDirectory=/home/runner/workspace
+ExecStart=/usr/bin/python3 standalone_bot.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
