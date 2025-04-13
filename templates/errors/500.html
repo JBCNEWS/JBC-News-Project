@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block title %}Server Error | JBC News{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body text-center p-5">
+                    <h1 class="display-1 text-danger mb-4">500</h1>
+                    <h2 class="mb-4">Server Error</h2>
+                    <p class="lead mb-4">Oops! Something went wrong on our end. Our technical team has been notified.</p>
+                    <p class="mb-4">Please try again later or go back to the homepage.</p>
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i> Back to Homepage
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

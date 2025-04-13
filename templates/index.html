@@ -1,0 +1,187 @@
+{% extends "layout.html" %}
+
+{% block title %}JBC News - Your Global News Source{% endblock %}
+
+{% block breaking_news %}
+    {% if breaking_news %}
+        <div class="breaking-news-container">
+            <div class="container">
+                <div class="d-flex align-items-center">
+                    <span class="breaking-news-label">BREAKING NEWS</span>
+                    <div class="breaking-news-slider">
+                        <div class="breaking-news-items">
+                            {% for news in breaking_news %}
+                                <a href="{{ url_for('view_news', news_id=news.id) }}" class="breaking-news-item me-4">
+                                    {{ news.title }} 
+                                    {% if news.country %}
+                                        <span class="text-muted">({{ news.country.name }})</span>
+                                    {% endif %}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <!-- Featured News -->
+        <section class="mb-5">
+            <div class="row">
+                <div class="col-md-8">
+                    <h2 class="section-title mb-4">Top Stories</h2>
+                    
+                    {% if breaking_news %}
+                        <div class="featured-news-container">
+                            {% set featured = breaking_news[0] %}
+                            <div class="card mb-4">
+                                <div class="news-img-container">
+                                    <img src="{{ featured.image_url or get_random_news_image() }}" class="card-img-top featured-img" alt="{{ featured.title }}" style="height: 350px; object-fit: cover;">
+                                    <span class="breaking-news-badge">BREAKING</span>
+                                    {% if featured.country %}
+                                        <span class="news-country">{{ featured.country.name }}</span>
+                                    {% endif %}
+                                    {% if featured.category %}
+                                        <span class="news-category">{{ featured.category.name }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="card-body">
+                                    <h3 class="card-title">{{ featured.title }}</h3>
+                                    <p class="card-text">{{ featured.summary }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="news-date">{{ featured.published_at|format_datetime }}</small>
+                                        <a href="{{ url_for('view_news', news_id=featured.id) }}" class="btn btn-primary">Read Full Story</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Other Breaking News -->
+                    {% if breaking_news and breaking_news|length > 1 %}
+                        <div class="row">
+                            {% for news in breaking_news[1:] %}
+                                <div class="col-md-6 mb-4">
+                                    {{ news_card(news, show_country=true, show_category=true) }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Sidebar -->
+                <div class="col-md-4">
+                    <div class="sidebar-section mb-4">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0"><i class="fas fa-globe me-2"></i> Local Times</h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    {% for country in countries %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span><i class="fas fa-clock me-2"></i> {{ country.name }}</span>
+                                            <span class="local-time badge bg-light text-dark" data-country="{{ country.code }}">
+                                                {{ get_local_time_for_country(country.code).strftime('%I:%M %p') }}
+                                            </span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-section mb-4">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0"><i class="fas fa-tags me-2"></i> Categories</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for category in categories %}
+                                        <div class="col-6 mb-2">
+                                            <a href="{{ url_for('news_by_category', category_id=category.id) }}" class="btn btn-outline-primary btn-sm w-100">
+                                                {{ category.name }}
+                                            </a>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0"><i class="fas fa-users me-2"></i> For Users</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Register to get personalized news from your country!</p>
+                                <a href="{{ url_for('register') }}" class="btn btn-success w-100 mb-2">
+                                    <i class="fas fa-user-plus me-2"></i> Register Now
+                                </a>
+                                <p class="mt-2">Already registered? Connect with our Telegram bots:</p>
+                                <ul class="list-unstyled">
+                                    <li><i class="fab fa-telegram text-primary me-2"></i> Registration Bot</li>
+                                    <li><i class="fab fa-telegram text-primary me-2"></i> News Bot</li>
+                                    <li><i class="fab fa-telegram text-primary me-2"></i> Support Bot</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Country-specific News -->
+        {% for country_name, news_list in country_news.items() %}
+            {% if news_list %}
+                <section class="mb-5">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="section-title">{{ country_name }} News</h2>
+                        <a href="{{ url_for('news_by_country', country_id=news_list[0].country.id) }}" class="btn btn-outline-primary btn-sm">
+                            View All <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                    
+                    <div class="row">
+                        {% for news in news_list %}
+                            <div class="col-md-3 mb-4">
+                                {{ news_card(news, show_country=false, show_category=true) }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endif %}
+        {% endfor %}
+        
+        <!-- About JBC Section -->
+        <section class="mb-5">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <img src="https://images.unsplash.com/photo-1455849318743-b2233052fcff" class="img-fluid rounded" alt="JBC News">
+                        </div>
+                        <div class="col-md-8">
+                            <h3>About JARAR BROADCASTING CORPORATION</h3>
+                            <p>JBC is a next-generation, AI-powered digital news broadcasting system that combines a public-facing website, Telegram bots, and a smart newsletter app to deliver personalized, multilingual, real-time news across the globe.</p>
+                            <p>Our mission is to keep you informed with accurate, timely, and personalized news from around the world.</p>
+                            <div class="d-flex">
+                                <a href="{{ url_for('register') }}" class="btn btn-primary me-2">
+                                    <i class="fas fa-user-plus me-1"></i> Join Us
+                                </a>
+                                <a href="#" class="btn btn-outline-primary">
+                                    <i class="fab fa-telegram me-1"></i> Connect on Telegram
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+{% endblock %}

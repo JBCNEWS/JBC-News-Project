@@ -1,0 +1,229 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ news.title }} | JBC News{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- News Article -->
+            <article class="bg-white p-4 rounded shadow-sm mb-4">
+                <!-- Article Header -->
+                <header class="mb-4">
+                    {% if news.is_breaking %}
+                        <div class="mb-3">
+                            <span class="badge bg-danger py-2 px-3">
+                                <i class="fas fa-bolt me-1"></i> BREAKING NEWS
+                            </span>
+                        </div>
+                    {% endif %}
+                    
+                    <h1 class="fw-bold mb-1">{{ news.title }}</h1>
+                    
+                    <div class="d-flex flex-wrap align-items-center text-muted mt-2 mb-3">
+                        <div class="me-4">
+                            <i class="far fa-calendar-alt me-1"></i> {{ news.published_at|format_datetime('%d %b %Y') }}
+                        </div>
+                        <div class="me-4">
+                            <i class="far fa-clock me-1"></i> {{ news.published_at|format_datetime('%H:%M') }}
+                        </div>
+                        {% if news.category %}
+                            <div class="me-4">
+                                <i class="fas fa-tag me-1"></i> 
+                                <a href="{{ url_for('news_by_category', category_id=news.category.id) }}" class="text-decoration-none">
+                                    {{ news.category.name }}
+                                </a>
+                            </div>
+                        {% endif %}
+                        {% if news.country %}
+                            <div>
+                                <i class="fas fa-globe me-1"></i>
+                                <a href="{{ url_for('news_by_country', country_id=news.country.id) }}" class="text-decoration-none">
+                                    {{ news.country.name }}
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if news.source_name %}
+                        <div class="text-muted small mb-3">
+                            Source: 
+                            {% if news.source_url %}
+                                <a href="{{ news.source_url }}" target="_blank" class="text-decoration-none">{{ news.source_name }}</a>
+                            {% else %}
+                                {{ news.source_name }}
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </header>
+                
+                <!-- Featured Image -->
+                {% if news.image_url %}
+                    <figure class="figure mb-4 w-100">
+                        <img src="{{ news.image_url }}" class="figure-img img-fluid rounded w-100" alt="{{ news.title }}" style="max-height: 500px; object-fit: cover;">
+                    </figure>
+                {% endif %}
+                
+                <!-- Article Summary -->
+                <div class="lead mb-4 fw-bold">
+                    {{ news.summary }}
+                </div>
+                
+                <!-- Article Content -->
+                <div class="article-content mb-4">
+                    {% if news.content %}
+                        {{ news.content|safe }}
+                    {% else %}
+                        <p>{{ news.summary }}</p>
+                        
+                        {% if news.source_url %}
+                            <p class="mt-4">
+                                <a href="{{ news.source_url }}" target="_blank" class="btn btn-primary">
+                                    <i class="fas fa-external-link-alt me-1"></i> Read Full Article at Source
+                                </a>
+                            </p>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                
+                <!-- Share Buttons -->
+                <div class="mb-4 d-flex">
+                    <span class="me-2">Share:</span>
+                    <a href="https://twitter.com/intent/tweet?url={{ request.url }}&text={{ news.title }}" target="_blank" class="btn btn-sm btn-outline-primary me-2">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.url }}" target="_blank" class="btn btn-sm btn-outline-primary me-2">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="https://wa.me/?text={{ news.title }}%20{{ request.url }}" target="_blank" class="btn btn-sm btn-outline-primary me-2">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                    <a href="https://t.me/share/url?url={{ request.url }}&text={{ news.title }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="fab fa-telegram-plane"></i>
+                    </a>
+                </div>
+                
+                <!-- Translations (if available) -->
+                {% if news.translations %}
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fas fa-language me-2"></i>Available Translations</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="nav nav-tabs" id="translationTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="english-tab" data-bs-toggle="tab" data-bs-target="#english" type="button" role="tab">English</button>
+                                </li>
+                                {% if news.get_translation('hi') %}
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="hindi-tab" data-bs-toggle="tab" data-bs-target="#hindi" type="button" role="tab">Hindi</button>
+                                    </li>
+                                {% endif %}
+                                {% if news.get_translation('ur') %}
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="urdu-tab" data-bs-toggle="tab" data-bs-target="#urdu" type="button" role="tab">Urdu</button>
+                                    </li>
+                                {% endif %}
+                                {% if news.get_translation('ar') %}
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="arabic-tab" data-bs-toggle="tab" data-bs-target="#arabic" type="button" role="tab">Arabic</button>
+                                    </li>
+                                {% endif %}
+                                {% if news.get_translation('si') %}
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="sinhala-tab" data-bs-toggle="tab" data-bs-target="#sinhala" type="button" role="tab">Sinhala</button>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                            <div class="tab-content p-3 border border-top-0 rounded-bottom" id="translationTabContent">
+                                <div class="tab-pane fade show active" id="english" role="tabpanel" aria-labelledby="english-tab">
+                                    <h5>{{ news.title }}</h5>
+                                    <p>{{ news.summary }}</p>
+                                </div>
+                                {% if news.get_translation('hi') %}
+                                    <div class="tab-pane fade" id="hindi" role="tabpanel" aria-labelledby="hindi-tab">
+                                        <h5>{{ news.get_translation('hi').title }}</h5>
+                                        <p>{{ news.get_translation('hi').summary }}</p>
+                                    </div>
+                                {% endif %}
+                                {% if news.get_translation('ur') %}
+                                    <div class="tab-pane fade" id="urdu" role="tabpanel" aria-labelledby="urdu-tab">
+                                        <h5>{{ news.get_translation('ur').title }}</h5>
+                                        <p>{{ news.get_translation('ur').summary }}</p>
+                                    </div>
+                                {% endif %}
+                                {% if news.get_translation('ar') %}
+                                    <div class="tab-pane fade" id="arabic" role="tabpanel" aria-labelledby="arabic-tab">
+                                        <h5>{{ news.get_translation('ar').title }}</h5>
+                                        <p>{{ news.get_translation('ar').summary }}</p>
+                                    </div>
+                                {% endif %}
+                                {% if news.get_translation('si') %}
+                                    <div class="tab-pane fade" id="sinhala" role="tabpanel" aria-labelledby="sinhala-tab">
+                                        <h5>{{ news.get_translation('si').title }}</h5>
+                                        <p>{{ news.get_translation('si').summary }}</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </article>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Related News -->
+            <div class="bg-white p-4 rounded shadow-sm mb-4">
+                <h4 class="border-bottom pb-3 mb-3">Related News</h4>
+                
+                {% if related_news %}
+                    {% for article in related_news %}
+                        <div class="card mb-3">
+                            <div class="row g-0">
+                                <div class="col-4">
+                                    <img src="{{ article.image_url or get_random_news_image() }}" class="img-fluid rounded-start" alt="{{ article.title }}" style="height: 100%; object-fit: cover;">
+                                </div>
+                                <div class="col-8">
+                                    <div class="card-body py-2">
+                                        <h6 class="card-title mb-1">
+                                            <a href="{{ url_for('view_news', news_id=article.id) }}" class="text-decoration-none">{{ article.title }}</a>
+                                        </h6>
+                                        <p class="card-text"><small class="text-muted">{{ article.published_at|format_datetime }}</small></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No related articles found.</p>
+                {% endif %}
+            </div>
+            
+            <!-- Categories -->
+            <div class="bg-white p-4 rounded shadow-sm mb-4">
+                <h4 class="border-bottom pb-3 mb-3">Categories</h4>
+                <div class="row g-2">
+                    {% for category in get_categories() %}
+                        <div class="col-6">
+                            <a href="{{ url_for('news_by_category', category_id=category.id) }}" class="btn btn-outline-primary btn-sm w-100">
+                                {{ category.name }}
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Download our app CTA -->
+            <div class="bg-primary text-white p-4 rounded shadow-sm mb-4">
+                <h4 class="mb-3">Stay Connected</h4>
+                <p>Get news on the go with our Telegram Bots!</p>
+                <div class="d-grid">
+                    <a href="#" class="btn btn-light">
+                        <i class="fab fa-telegram me-2"></i>Connect with JBC
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,160 @@
+{% extends "layout.html" %}
+
+{% block title %}Support Tickets | Admin Dashboard | JBC News{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+            <div class="position-sticky pt-3">
+                <div class="sidebar-heading">Admin Dashboard</div>
+                <ul class="sidebar-nav">
+                    <li>
+                        <a href="{{ url_for('admin_dashboard') }}">
+                            <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin_users') }}">
+                            <i class="fas fa-users me-2"></i> Users Management
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin_news') }}">
+                            <i class="fas fa-newspaper me-2"></i> News Management
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin_tickets') }}" class="active">
+                            <i class="fas fa-ticket-alt me-2"></i> Support Tickets
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin_broadcast') }}">
+                            <i class="fas fa-bullhorn me-2"></i> Broadcast Message
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('add_staff') }}">
+                            <i class="fas fa-user-plus me-2"></i> Add Staff
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('index') }}">
+                            <i class="fas fa-home me-2"></i> Back to Website
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1><i class="fas fa-ticket-alt me-2"></i>Support Tickets</h1>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Filter Tickets</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('admin_tickets') }}" method="GET" id="ticketFilterForm">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="status" class="form-label">Status</label>
+                                <select name="status" id="status" class="form-select">
+                                    <option value="">All Status</option>
+                                    <option value="open" {% if filter_status == 'open' %}selected{% endif %}>Open</option>
+                                    <option value="in_progress" {% if filter_status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                    <option value="closed" {% if filter_status == 'closed' %}selected{% endif %}>Closed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-filter me-1"></i> Apply Filters
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tickets Table -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Support Tickets</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>User</th>
+                                    <th>Subject</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Last Update</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ticket in tickets.items %}
+                                <tr class="align-middle">
+                                    <td>
+                                        <span class="badge bg-secondary">{{ ticket.ticket_id }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if ticket.user.profile_photo_url %}
+                                            <img src="{{ ticket.user.profile_photo_url }}" alt="{{ ticket.user.username }}" class="rounded-circle me-2" width="32" height="32">
+                                            {% else %}
+                                            <i class="fas fa-user-circle fa-2x text-secondary me-2"></i>
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="mb-0">{{ ticket.user.username }}</h6>
+                                                <small>{{ ticket.user.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ ticket.subject }}</td>
+                                    <td>
+                                        <select class="form-select form-select-sm ticket-status-select" data-ticket-id="{{ ticket.id }}">
+                                            <option value="open" {% if ticket.status == 'open' %}selected{% endif %}>Open</option>
+                                            <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                            <option value="closed" {% if ticket.status == 'closed' %}selected{% endif %}>Closed</option>
+                                        </select>
+                                    </td>
+                                    <td>{{ ticket.created_at|format_datetime }}</td>
+                                    <td>
+                                        {% set last_response = ticket.responses|sort(attribute='created_at')|last if ticket.responses else None %}
+                                        {% if last_response %}
+                                            {{ last_response.created_at|format_datetime }}
+                                        {% else %}
+                                            <span class="text-muted">No responses</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('staff_view_ticket', ticket_id=ticket.ticket_id) }}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye me-1"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    {{ pagination(tickets) }}
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div id="alertsContainer" class="position-fixed bottom-0 end-0 p-3" style="z-index: 11"></div>
+{% endblock %}

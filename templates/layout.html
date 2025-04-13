@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}JBC News - JARAR BROADCASTING CORPORATION{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-broadcast-tower me-2"></i>JBC News
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == url_for('index') %}active{% endif %}" href="{{ url_for('index') }}">Home</a>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.role.value == 'admin' %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if '/admin/' in request.path %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
+                            </li>
+                        {% elif current_user.role.value == 'staff' %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if '/staff/' in request.path %}active{% endif %}" href="{{ url_for('staff_dashboard') }}">Staff Dashboard</a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if '/user/dashboard' in request.path %}active{% endif %}" href="{{ url_for('user_dashboard') }}">My Dashboard</a>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                    
+                    <!-- Categories Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            Categories
+                        </a>
+                        <ul class="dropdown-menu">
+                            {% for category in get_categories() %}
+                                <li><a class="dropdown-item" href="{{ url_for('news_by_category', category_id=category.id) }}">{{ category.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    
+                    <!-- Countries Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="countriesDropdown" role="button" data-bs-toggle="dropdown">
+                            Countries
+                        </a>
+                        <ul class="dropdown-menu">
+                            {% for country in get_countries() %}
+                                <li><a class="dropdown-item" href="{{ url_for('news_by_country', country_id=country.id) }}">{{ country.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                </ul>
+                
+                <!-- Search Form -->
+                <form class="d-flex me-2" id="searchForm" action="{{ url_for('search_news') }}" method="GET">
+                    <input class="form-control me-2" type="search" id="searchInput" name="q" placeholder="Search news..." aria-label="Search">
+                    <button class="btn btn-outline-primary" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+                
+                <!-- User Menu -->
+                <div class="d-flex">
+                    {% if current_user.is_authenticated %}
+                        <div class="dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                {% if current_user.profile_photo_url %}
+                                    <img src="{{ current_user.profile_photo_url }}" alt="{{ current_user.username }}" class="rounded-circle" width="30" height="30">
+                                {% else %}
+                                    <i class="fas fa-user-circle"></i>
+                                {% endif %}
+                                {{ current_user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                {% if current_user.role.value == 'user' %}
+                                    <li><a class="dropdown-item" href="{{ url_for('user_profile') }}"><i class="fas fa-user me-2"></i> My Profile</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('user_support') }}"><i class="fas fa-headset me-2"></i> Support</a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <div class="btn-group">
+                            <a href="{{ url_for('login') }}" class="btn btn-outline-primary me-2">Login</a>
+                            <a href="{{ url_for('register') }}" class="btn btn-primary">Register</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Breaking News Ticker (if on home page) -->
+    {% if request.path == url_for('index') %}
+        {% block breaking_news %}{% endblock %}
+    {% endif %}
+    
+    <!-- Flash Messages -->
+    <div class="container mt-3" id="alertsContainer">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <span>&copy; {{ now.year }} JARAR BROADCASTING CORPORATION. All rights reserved.</span>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Chart.js (for admin/staff dashboards) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    
+    <!-- Main JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    {% if current_user.is_authenticated and current_user.role.value == 'admin' %}
+        <!-- Admin JS -->
+        <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+    {% endif %}
+    
+    {% if current_user.is_authenticated and current_user.role.value == 'staff' %}
+        <!-- Staff JS -->
+        <script src="{{ url_for('static', filename='js/staff.js') }}"></script>
+    {% endif %}
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+
+{% macro news_card(article, show_country=true, show_category=true) %}
+    <div class="card news-card h-100 {% if article.country and article.country.code == 'IN' %}india-theme{% elif article.country and article.country.code == 'PK' %}pakistan-theme{% elif article.country and article.country.code == 'US' %}usa-theme{% elif article.country and article.country.code == 'SA' %}saudi-theme{% elif article.country and article.country.code == 'LK' %}srilanka-theme{% endif %}">
+        <div class="news-img-container">
+            <img src="{{ article.image_url or get_random_news_image() }}" class="card-img-top" alt="{{ article.title }}">
+            {% if show_category and article.category %}
+                <span class="news-category">{{ article.category.name }}</span>
+            {% endif %}
+            {% if show_country and article.country %}
+                <span class="news-country">{{ article.country.name }}</span>
+            {% endif %}
+            {% if article.is_breaking %}
+                <span class="breaking-news-badge">BREAKING</span>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">{{ article.title }}</h5>
+            <p class="card-text">{{ article.summary|truncate(150) }}</p>
+        </div>
+        <div class="card-footer bg-transparent">
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="news-date">{{ article.published_at|format_datetime }}</small>
+                <a href="{{ url_for('view_news', news_id=article.id) }}" class="btn btn-sm btn-outline-primary">Read More</a>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro pagination(items) %}
+    {% if items.pages > 1 %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if items.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for(request.endpoint, page=items.prev_num, **request.args) }}">Previous</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                    </li>
+                {% endif %}
+                
+                {% for page in items.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page %}
+                        {% if page == items.page %}
+                            <li class="page-item active">
+                                <a class="page-link" href="#">{{ page }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for(request.endpoint, page=page, **request.args) }}">{{ page }}</a>
+                            </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">...</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if items.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for(request.endpoint, page=items.next_num, **request.args) }}">Next</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+{% endmacro %}

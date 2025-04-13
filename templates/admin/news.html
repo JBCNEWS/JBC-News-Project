@@ -1,0 +1,216 @@
+{% extends "layout.html" %}
+
+{% block title %}News Management | Admin Dashboard | JBC News{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+            <div class="position-sticky pt-3">
+                <div class="sidebar-heading">Admin Dashboard</div>
+                <ul class="sidebar-nav">
+                    <li>
+                        <a href="{{ url_for('admin_dashboard') }}">
+                            <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin_users') }}">
+                            <i class="fas fa-users me-2"></i> Users Management
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin_news') }}" class="active">
+                            <i class="fas fa-newspaper me-2"></i> News Management
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin_tickets') }}">
+                            <i class="fas fa-ticket-alt me-2"></i> Support Tickets
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin_broadcast') }}">
+                            <i class="fas fa-bullhorn me-2"></i> Broadcast Message
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('add_staff') }}">
+                            <i class="fas fa-user-plus me-2"></i> Add Staff
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('index') }}">
+                            <i class="fas fa-home me-2"></i> Back to Website
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1><i class="fas fa-newspaper me-2"></i>News Management</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <a href="{{ url_for('add_news') }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-plus me-1"></i> Add News
+                        </a>
+                        <button type="button" id="fetchNewsBtn" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-sync me-1"></i> Fetch News
+                        </button>
+                        <form id="fetchNewsForm" action="{{ url_for('admin_fetch_news') }}" method="POST" class="d-none">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Filter News</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('admin_news') }}" method="GET" id="newsFilterForm">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="country" class="form-label">Country</label>
+                                <select name="country" id="country" class="form-select">
+                                    <option value="">All Countries</option>
+                                    {% for country in countries %}
+                                        <option value="{{ country.id }}" {% if filter_country == country.id %}selected{% endif %}>{{ country.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="category" class="form-label">Category</label>
+                                <select name="category" id="category" class="form-select">
+                                    <option value="">All Categories</option>
+                                    {% for category in categories %}
+                                        <option value="{{ category.id }}" {% if filter_category == category.id %}selected{% endif %}>{{ category.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label for="status" class="form-label">Status</label>
+                                <select name="status" id="status" class="form-select">
+                                    <option value="">All Status</option>
+                                    <option value="published" {% if filter_status == 'published' %}selected{% endif %}>Published</option>
+                                    <option value="unpublished" {% if filter_status == 'unpublished' %}selected{% endif %}>Unpublished</option>
+                                    <option value="breaking" {% if filter_status == 'breaking' %}selected{% endif %}>Breaking</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label for="source" class="form-label">Source</label>
+                                <select name="source" id="source" class="form-select">
+                                    <option value="">All Sources</option>
+                                    <option value="auto" {% if filter_source == 'auto' %}selected{% endif %}>Auto-generated</option>
+                                    <option value="manual" {% if filter_source == 'manual' %}selected{% endif %}>Manually Added</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 mb-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-filter me-1"></i> Apply Filters
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- News Table -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">News Articles</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">#</th>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Country</th>
+                                    <th>Published</th>
+                                    <th>Status</th>
+                                    <th>Source</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for article in news.items %}
+                                <tr>
+                                    <td>{{ article.id }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if article.image_url %}
+                                            <img src="{{ article.image_url }}" alt="{{ article.title }}" class="rounded me-2" width="50" height="30" style="object-fit: cover;">
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="mb-0">{{ article.title|truncate(50) }}</h6>
+                                                <small class="text-muted">{{ article.source_name or 'Unknown source' }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if article.category %}
+                                            <span class="badge bg-primary">{{ article.category.name }}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Uncategorized</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if article.country %}
+                                            <span class="badge bg-info">{{ article.country.name }}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Global</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ article.published_at|format_datetime }}</td>
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input toggle-breaking-news" type="checkbox" id="breaking-{{ article.id }}" 
+                                                   data-news-id="{{ article.id }}" {% if article.is_breaking %}checked{% endif %}>
+                                            <label class="form-check-label" for="breaking-{{ article.id }}">Breaking</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input toggle-published" type="checkbox" id="published-{{ article.id }}" 
+                                                   data-news-id="{{ article.id }}" {% if article.is_published %}checked{% endif %}>
+                                            <label class="form-check-label" for="published-{{ article.id }}">Published</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'secondary' if article.is_auto_generated else 'success' }}">
+                                            {{ 'Auto' if article.is_auto_generated else 'Manual' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('view_news', news_id=article.id) }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('edit_news', news_id=article.id) }}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    {{ pagination(news) }}
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div id="alertsContainer" class="position-fixed bottom-0 end-0 p-3" style="z-index: 11"></div>
+{% endblock %}

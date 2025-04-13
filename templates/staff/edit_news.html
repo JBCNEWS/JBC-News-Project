@@ -1,0 +1,295 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit News Article | Staff Dashboard | JBC News{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+            <div class="position-sticky pt-3">
+                <div class="sidebar-heading">Staff Dashboard</div>
+                <ul class="sidebar-nav">
+                    <li>
+                        <a href="{{ url_for('staff_dashboard') }}">
+                            <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('staff_news') }}">
+                            <i class="fas fa-newspaper me-2"></i> News Management
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('add_news') }}">
+                            <i class="fas fa-plus-circle me-2"></i> Add News
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('staff_support') }}">
+                            <i class="fas fa-headset me-2"></i> Support Tickets
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('index') }}">
+                            <i class="fas fa-home me-2"></i> Back to Website
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1><i class="fas fa-edit me-2"></i>Edit News Article</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <a href="{{ url_for('view_news', news_id=news.id) }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                            <i class="fas fa-eye me-1"></i> View Article
+                        </a>
+                        <a href="{{ url_for('staff_news') }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Back to News
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Edit News Article</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('edit_news', news_id=news.id) }}">
+                        {{ form.hidden_tag() }}
+
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label for="title" class="form-label">{{ form.title.label.text }} <span class="text-danger">*</span></label>
+                                {{ form.title(class="form-control", id="title", placeholder="Enter article title") }}
+                                {% if form.title.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.title.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="source_name" class="form-label">{{ form.source_name.label.text }}</label>
+                                {{ form.source_name(class="form-control", id="source_name", placeholder="Source publication name") }}
+                                {% if form.source_name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.source_name.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="summary" class="form-label">{{ form.summary.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.summary(class="form-control", id="summary", rows="3", placeholder="Enter a brief summary of the article") }}
+                            {% if form.summary.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.summary.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">A concise summary that will appear in article previews.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="content" class="form-label">{{ form.content.label.text }}</label>
+                            {{ form.content(class="form-control", id="content", rows="10", placeholder="Enter the full article content") }}
+                            {% if form.content.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.content.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Full article content. HTML formatting is supported.</div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="source_url" class="form-label">{{ form.source_url.label.text }}</label>
+                                {{ form.source_url(class="form-control", id="source_url", placeholder="https://example.com/article") }}
+                                {% if form.source_url.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.source_url.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Link to the original article if applicable.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="image_url" class="form-label">{{ form.image_url.label.text }}</label>
+                                <div class="input-group">
+                                    {{ form.image_url(class="form-control", id="image_url", placeholder="https://example.com/image.jpg") }}
+                                    <button class="btn btn-outline-secondary" type="button" id="randomImageBtn">
+                                        <i class="fas fa-random"></i> Random
+                                    </button>
+                                </div>
+                                {% if form.image_url.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.image_url.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Featured image URL.</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <img id="imagePreview" src="{{ news.image_url }}" alt="Image Preview" class="img-fluid rounded {% if not news.image_url %}d-none{% endif %}" style="max-height: 200px;">
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="category" class="form-label">{{ form.category.label.text }} <span class="text-danger">*</span></label>
+                                {{ form.category(class="form-select", id="category") }}
+                                {% if form.category.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.category.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="country" class="form-label">{{ form.country.label.text }} <span class="text-danger">*</span></label>
+                                {{ form.country(class="form-select", id="country") }}
+                                {% if form.country.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.country.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mt-4">
+                                    <div class="form-check form-switch">
+                                        {{ form.is_breaking(class="form-check-input", id="is_breaking") }}
+                                        <label class="form-check-label" for="is_breaking">{{ form.is_breaking.label.text }}</label>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        {{ form.is_published(class="form-check-input", id="is_published") }}
+                                        <label class="form-check-label" for="is_published">{{ form.is_published.label.text }}</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Translations Section (if available) -->
+                        {% if news.translations %}
+                            <div class="card mb-4">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Available Translations</h5>
+                                    <button type="button" id="translateNewsBtn" class="btn btn-sm btn-primary" data-news-id="{{ news.id }}">
+                                        <i class="fas fa-language me-1"></i> 
+                                        Regenerate Translations
+                                        <span id="translationSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="nav nav-tabs" id="translationTabs" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link translation-tab active" id="english-tab" data-bs-toggle="tab" data-bs-target="#english" type="button" role="tab" data-lang="en">English</button>
+                                        </li>
+                                        {% if news.get_translation('hi') %}
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link translation-tab" id="hindi-tab" data-bs-toggle="tab" data-bs-target="#hindi" type="button" role="tab" data-lang="hi">Hindi</button>
+                                            </li>
+                                        {% endif %}
+                                        {% if news.get_translation('ur') %}
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link translation-tab" id="urdu-tab" data-bs-toggle="tab" data-bs-target="#urdu" type="button" role="tab" data-lang="ur">Urdu</button>
+                                            </li>
+                                        {% endif %}
+                                        {% if news.get_translation('ar') %}
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link translation-tab" id="arabic-tab" data-bs-toggle="tab" data-bs-target="#arabic" type="button" role="tab" data-lang="ar">Arabic</button>
+                                            </li>
+                                        {% endif %}
+                                        {% if news.get_translation('si') %}
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link translation-tab" id="sinhala-tab" data-bs-toggle="tab" data-bs-target="#sinhala" type="button" role="tab" data-lang="si">Sinhala</button>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                    <div class="tab-content mt-3" id="translationTabContent">
+                                        <div class="tab-pane fade show active translation-content" id="english" role="tabpanel" data-lang="en">
+                                            <h6>Original (English)</h6>
+                                            <p class="fw-bold">{{ news.title }}</p>
+                                            <p>{{ news.summary }}</p>
+                                        </div>
+                                        {% if news.get_translation('hi') %}
+                                            <div class="tab-pane fade translation-content" id="hindi" role="tabpanel" data-lang="hi">
+                                                <h6>Hindi Translation</h6>
+                                                <p class="fw-bold">{{ news.get_translation('hi').title }}</p>
+                                                <p>{{ news.get_translation('hi').summary }}</p>
+                                            </div>
+                                        {% endif %}
+                                        {% if news.get_translation('ur') %}
+                                            <div class="tab-pane fade translation-content" id="urdu" role="tabpanel" data-lang="ur">
+                                                <h6>Urdu Translation</h6>
+                                                <p class="fw-bold">{{ news.get_translation('ur').title }}</p>
+                                                <p>{{ news.get_translation('ur').summary }}</p>
+                                            </div>
+                                        {% endif %}
+                                        {% if news.get_translation('ar') %}
+                                            <div class="tab-pane fade translation-content" id="arabic" role="tabpanel" data-lang="ar">
+                                                <h6>Arabic Translation</h6>
+                                                <p class="fw-bold">{{ news.get_translation('ar').title }}</p>
+                                                <p>{{ news.get_translation('ar').summary }}</p>
+                                            </div>
+                                        {% endif %}
+                                        {% if news.get_translation('si') %}
+                                            <div class="tab-pane fade translation-content" id="sinhala" role="tabpanel" data-lang="si">
+                                                <h6>Sinhala Translation</h6>
+                                                <p class="fw-bold">{{ news.get_translation('si').title }}</p>
+                                                <p>{{ news.get_translation('si').summary }}</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info mb-4">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-language fa-2x me-3"></i>
+                                    <div>
+                                        <h5 class="alert-heading">No Translations Available</h5>
+                                        <p class="mb-0">Click the button below to generate translations for this article.</p>
+                                    </div>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <button type="button" id="translateNewsBtn" class="btn btn-primary" data-news-id="{{ news.id }}">
+                                        <i class="fas fa-language me-1"></i> 
+                                        Generate Translations
+                                        <span id="translationSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('staff_news') }}" class="btn btn-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Update Article</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div id="alertsContainer" class="position-fixed bottom-0 end-0 p-3" style="z-index: 11"></div>
+{% endblock %}

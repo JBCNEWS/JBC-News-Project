@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+
+{% block title %}Access Denied | JBC News{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="error-page my-5">
+                <h1 class="display-1 text-danger">403</h1>
+                <h2 class="mb-4">Access Denied</h2>
+                <p class="lead mb-4">Sorry, you don't have permission to access this page.</p>
+                
+                <img src="https://images.unsplash.com/photo-1560957123-e8e019c66980" alt="Access Denied" class="img-fluid rounded mb-4" style="max-height: 300px;">
+                
+                <div class="d-flex justify-content-center">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary me-2">
+                        <i class="fas fa-home me-2"></i>Go to Homepage
+                    </a>
+                    <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Go Back
+                    </a>
+                </div>
+                
+                <div class="mt-5">
+                    <div class="card">
+                        <div class="card-body">
+                            <h4 class="mb-3">Why am I seeing this?</h4>
+                            <p>You might be seeing this because:</p>
+                            <ul class="text-start">
+                                <li>You're trying to access a page that requires a specific user role</li>
+                                <li>You need to be logged in to view this page</li>
+                                <li>Your account doesn't have sufficient permissions</li>
+                            </ul>
+                            
+                            <div class="mt-3">
+                                {% if current_user.is_authenticated %}
+                                    <p>You're currently logged in as <strong>{{ current_user.username }}</strong> with role <strong>{{ current_user.role.value }}</strong>.</p>
+                                    <a href="{{ url_for('logout') }}" class="btn btn-outline-primary">
+                                        <i class="fas fa-sign-out-alt me-1"></i> Logout and Try Different Account
+                                    </a>
+                                {% else %}
+                                    <p>You're not currently logged in.</p>
+                                    <div class="d-flex justify-content-center">
+                                        <a href="{{ url_for('login') }}" class="btn btn-outline-primary me-2">
+                                            <i class="fas fa-sign-in-alt me-1"></i> Login
+                                        </a>
+                                        <a href="{{ url_for('register') }}" class="btn btn-outline-success">
+                                            <i class="fas fa-user-plus me-1"></i> Register
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

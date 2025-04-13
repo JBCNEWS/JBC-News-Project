@@ -1,0 +1,257 @@
+{% extends "layout.html" %}
+
+{% block title %}Admin Dashboard | JBC News{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+            <div class="position-sticky pt-3">
+                <div class="sidebar-heading">Admin Dashboard</div>
+                <ul class="sidebar-nav">
+                    <li>
+                        <a href="{{ url_for('admin_dashboard') }}" class="active">
+                            <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin_users') }}">
+                            <i class="fas fa-users me-2"></i> Users Management
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin_news') }}">
+                            <i class="fas fa-newspaper me-2"></i> News Management
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin_tickets') }}">
+                            <i class="fas fa-ticket-alt me-2"></i> Support Tickets
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin_broadcast') }}">
+                            <i class="fas fa-bullhorn me-2"></i> Broadcast Message
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('add_staff') }}">
+                            <i class="fas fa-user-plus me-2"></i> Add Staff
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('index') }}">
+                            <i class="fas fa-home me-2"></i> Back to Website
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1><i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <a href="{{ url_for('admin_fetch_news') }}" class="btn btn-sm btn-outline-secondary" onclick="this.form.submit()">
+                            <i class="fas fa-sync me-1"></i> Fetch Latest News
+                        </a>
+                        <form id="fetchNewsForm" action="{{ url_for('admin_fetch_news') }}" method="POST" class="d-none">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <div class="stats-card stats-card-primary">
+                        <i class="fas fa-users"></i>
+                        <h3>{{ total_users }}</h3>
+                        <p>Total Users</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stats-card stats-card-success">
+                        <i class="fas fa-user-tie"></i>
+                        <h3>{{ total_staff }}</h3>
+                        <p>Staff Members</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stats-card stats-card-warning">
+                        <i class="fas fa-newspaper"></i>
+                        <h3>{{ total_news }}</h3>
+                        <p>News Articles</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stats-card stats-card-danger">
+                        <i class="fas fa-ticket-alt"></i>
+                        <h3>{{ open_tickets }}</h3>
+                        <p>Open Tickets</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">User Registration by Country</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="userRegistrationChart" 
+                                data-countries="{{ ['India', 'Pakistan', 'USA', 'Saudi Arabia', 'Sri Lanka']|tojson }}" 
+                                data-counts="{{ [45, 35, 25, 20, 15]|tojson }}"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">News Articles by Category</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="newsDistributionChart"
+                                data-categories="{{ ['Politics', 'Business', 'Technology', 'Sports', 'Entertainment', 'Health', 'Science', 'World']|tojson }}"
+                                data-counts="{{ [65, 59, 80, 81, 56, 55, 40, 70]|tojson }}"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Activity Timeline</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="activityTimelineChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activities Section -->
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Recent Users</h5>
+                            <a href="{{ url_for('admin_users') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush">
+                                {% for user in recent_users %}
+                                <div class="list-group-item">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            {% if user.profile_photo_url %}
+                                            <img src="{{ user.profile_photo_url }}" alt="{{ user.username }}" class="rounded-circle" width="40" height="40">
+                                            {% else %}
+                                            <i class="fas fa-user-circle fa-2x text-secondary"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">{{ user.username }}</h6>
+                                            <small class="text-muted">{{ user.created_at|format_datetime }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Recent News</h5>
+                            <a href="{{ url_for('admin_news') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush">
+                                {% for news in recent_news %}
+                                <div class="list-group-item">
+                                    <h6 class="mb-1">{{ news.title|truncate(50) }}</h6>
+                                    <div class="d-flex justify-content-between">
+                                        <small>{{ news.category.name if news.category else 'Uncategorized' }}</small>
+                                        <small class="text-muted">{{ news.published_at|format_datetime }}</small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Recent Tickets</h5>
+                            <a href="{{ url_for('admin_tickets') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush">
+                                {% for ticket in recent_tickets %}
+                                <div class="list-group-item">
+                                    <h6 class="mb-1">{{ ticket.subject|truncate(50) }}</h6>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="badge bg-{{ 'primary' if ticket.status == 'open' else 'warning' if ticket.status == 'in_progress' else 'success' }}">
+                                            {{ ticket.status.replace('_', ' ').title() }}
+                                        </span>
+                                        <small class="text-muted">{{ ticket.created_at|format_datetime }}</small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Info Section -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">System Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <h6><i class="fas fa-server me-2"></i>Application Status</h6>
+                                        <p class="text-success mb-0"><i class="fas fa-circle me-1"></i> Running</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <h6><i class="fas fa-clock me-2"></i>Last News Fetch</h6>
+                                        <p class="mb-0">{{ (recent_news[0].published_at if recent_news else now)|format_datetime }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <h6><i class="fas fa-robot me-2"></i>Telegram Bots</h6>
+                                        <p class="text-success mb-0"><i class="fas fa-circle me-1"></i> Active</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div id="alertsContainer" class="position-fixed bottom-0 end-0 p-3" style="z-index: 11"></div>
+{% endblock %}

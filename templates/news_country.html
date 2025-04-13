@@ -1,0 +1,131 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ country.name }} News | JBC News{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="mb-0">
+                    <i class="fas fa-globe me-2 text-primary"></i>{{ country.name }} News
+                </h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="#">Countries</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ country.name }}</li>
+                    </ol>
+                </nav>
+            </div>
+            
+            <div class="alert alert-info d-flex align-items-center mb-4">
+                <i class="fas fa-clock me-3 fa-lg"></i>
+                <div>
+                    <strong>Local Time in {{ country.name }}:</strong> 
+                    <span class="local-time" data-country="{{ country.code }}">
+                        {{ get_local_time_for_country(country.code).strftime('%I:%M %p') }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-9">
+            <!-- News Articles -->
+            {% if news.items %}
+                <div class="row">
+                    {% for article in news.items %}
+                        <div class="col-md-6 mb-4">
+                            {{ news_card(article, show_country=false) }}
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {{ pagination(news) }}
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> No news articles found for this country.
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-lg-3">
+            <!-- Sidebar -->
+            <div class="card mb-4 {% if country.code == 'IN' %}india-theme{% elif country.code == 'PK' %}pakistan-theme{% elif country.code == 'US' %}usa-theme{% elif country.code == 'SA' %}saudi-theme{% elif country.code == 'LK' %}srilanka-theme{% endif %}">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>About {{ country.name }}</h5>
+                </div>
+                <div class="card-body">
+                    <p>
+                        {% if country.code == 'IN' %}
+                            India is a diverse South Asian country with a rich history, culture, and rapidly growing economy.
+                        {% elif country.code == 'PK' %}
+                            Pakistan is a South Asian country with diverse landscapes from mountains to deserts, and a rich cultural heritage.
+                        {% elif country.code == 'US' %}
+                            The United States is a North American nation with the world's largest economy and significant global influence.
+                        {% elif country.code == 'SA' %}
+                            Saudi Arabia is a Middle Eastern country known for its oil reserves, Islamic heritage, and rapid modernization.
+                        {% elif country.code == 'LK' %}
+                            Sri Lanka is an island nation in South Asia known for its diverse landscapes, ancient temples, and tea production.
+                        {% endif %}
+                    </p>
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fas fa-globe-asia fa-2x text-primary"></i>
+                        </div>
+                        <div>
+                            <p class="mb-0"><strong>Timezone:</strong> {{ country.timezone }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-globe me-2"></i>All Countries</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for c in get_countries() %}
+                            <a href="{{ url_for('news_by_country', country_id=c.id) }}" class="list-group-item list-group-item-action {% if c.id == country.id %}active{% endif %}">
+                                {{ c.name }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-tags me-2"></i>Categories</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for category in get_categories() %}
+                            <a href="{{ url_for('news_by_category', category_id=category.id) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                {{ category.name }}
+                                <span class="badge bg-primary rounded-pill">
+                                    <i class="fas fa-angle-right"></i>
+                                </span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Telegram Bot Promo -->
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <i class="fab fa-telegram fa-4x mb-3"></i>
+                    <h5 class="card-title">Get {{ country.name }} News on Telegram</h5>
+                    <p class="card-text">Stay updated with our Telegram bot!</p>
+                    <a href="#" class="btn btn-light">Connect Now</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

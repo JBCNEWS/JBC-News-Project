@@ -1,0 +1,287 @@
+{% extends "layout.html" %}
+
+{% block title %}Staff Dashboard | JBC News{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+            <div class="position-sticky pt-3">
+                <div class="sidebar-heading">Staff Dashboard</div>
+                <ul class="sidebar-nav">
+                    <li>
+                        <a href="{{ url_for('staff_dashboard') }}" class="active">
+                            <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('staff_news') }}">
+                            <i class="fas fa-newspaper me-2"></i> News Management
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('add_news') }}">
+                            <i class="fas fa-plus-circle me-2"></i> Add News
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('staff_support') }}">
+                            <i class="fas fa-headset me-2"></i> Support Tickets
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('index') }}">
+                            <i class="fas fa-home me-2"></i> Back to Website
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1><i class="fas fa-tachometer-alt me-2"></i>Staff Dashboard</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <a href="{{ url_for('add_news') }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-plus me-1"></i> Add News
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Staff Profile Section -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-2 text-center">
+                                    {% if current_user.profile_photo_url %}
+                                    <img src="{{ current_user.profile_photo_url }}" alt="{{ current_user.username }}" class="img-fluid rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;">
+                                    {% else %}
+                                    <i class="fas fa-user-circle fa-5x text-secondary mb-3"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-5">
+                                    <h4>{{ current_user.username }}</h4>
+                                    <p class="text-muted mb-1">{{ current_user.email }}</p>
+                                    <p class="text-muted mb-1">
+                                        <span class="badge bg-info">Staff Member</span>
+                                        {% if staff %}
+                                            <span class="badge bg-secondary">Department: {{ staff.department }}</span>
+                                        {% endif %}
+                                    </p>
+                                    {% if staff %}
+                                    <p class="mb-0"><strong>Staff ID:</strong> {{ staff.staff_id }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="card bg-light">
+                                        <div class="card-body p-3">
+                                            <h5 class="card-title">Staff Commands</h5>
+                                            <p class="card-text small">Telegram Bot Commands:</p>
+                                            <ul class="list-unstyled small mb-0">
+                                                <li><code>/addnews</code> - Add new article</li>
+                                                <li><code>/newslist</code> - List recent news</li>
+                                                <li><code>/breaking</code> - Mark news as breaking</li>
+                                                <li><code>/translate</code> - Translate news content</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="stats-card stats-card-primary">
+                        <i class="fas fa-newspaper"></i>
+                        <h3>{{ staff_news|length }}</h3>
+                        <p>Your Articles</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card stats-card-danger">
+                        <i class="fas fa-bolt"></i>
+                        <h3>{{ breaking_news|length }}</h3>
+                        <p>Breaking News</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card stats-card-warning">
+                        <i class="fas fa-ticket-alt"></i>
+                        <h3>{{ open_tickets|length }}</h3>
+                        <p>Open Tickets</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Your Recent News -->
+                <div class="col-md-7">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Your Recent News</h5>
+                            <a href="{{ url_for('staff_news') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if staff_news %}
+                                <div class="list-group list-group-flush">
+                                    {% for news in staff_news %}
+                                        <div class="list-group-item">
+                                            <div class="d-flex align-items-center">
+                                                {% if news.image_url %}
+                                                <img src="{{ news.image_url }}" alt="{{ news.title }}" class="rounded me-3" style="width: 60px; height: 40px; object-fit: cover;">
+                                                {% else %}
+                                                <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 40px;">
+                                                    <i class="fas fa-newspaper text-secondary"></i>
+                                                </div>
+                                                {% endif %}
+                                                <div>
+                                                    <h6 class="mb-1">{{ news.title|truncate(70) }}</h6>
+                                                    <div class="d-flex text-muted small">
+                                                        <span class="me-3"><i class="far fa-clock me-1"></i>{{ news.published_at|format_datetime }}</span>
+                                                        {% if news.category %}
+                                                            <span class="me-3"><i class="fas fa-tag me-1"></i>{{ news.category.name }}</span>
+                                                        {% endif %}
+                                                        {% if news.is_breaking %}
+                                                            <span class="badge bg-danger">Breaking</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-2 text-end">
+                                                <a href="{{ url_for('view_news', news_id=news.id) }}" class="btn btn-sm btn-outline-primary me-1" target="_blank">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{{ url_for('edit_news', news_id=news.id) }}" class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </a>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="p-4 text-center">
+                                    <i class="fas fa-newspaper fa-3x text-muted mb-3"></i>
+                                    <p>You haven't created any news articles yet.</p>
+                                    <a href="{{ url_for('add_news') }}" class="btn btn-primary">
+                                        <i class="fas fa-plus me-1"></i> Add Your First Article
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Open Support Tickets -->
+                <div class="col-md-5">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Open Support Tickets</h5>
+                            <a href="{{ url_for('staff_support') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if open_tickets %}
+                                <div class="list-group list-group-flush">
+                                    {% for ticket in open_tickets %}
+                                        <div class="list-group-item">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <h6 class="mb-1">{{ ticket.subject|truncate(40) }}</h6>
+                                                    <p class="text-muted small mb-0">
+                                                        From: {{ ticket.user.username }} | 
+                                                        <span class="badge bg-primary">{{ ticket.status.replace('_', ' ').title() }}</span>
+                                                    </p>
+                                                </div>
+                                                <a href="{{ url_for('staff_view_ticket', ticket_id=ticket.ticket_id) }}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-reply"></i> Respond
+                                                </a>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="p-4 text-center">
+                                    <i class="fas fa-ticket-alt fa-3x text-muted mb-3"></i>
+                                    <p>No open support tickets at the moment.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Breaking News Section -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Breaking News</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if breaking_news %}
+                                <div class="list-group list-group-flush">
+                                    {% for news in breaking_news %}
+                                        <div class="list-group-item">
+                                            <h6 class="mb-1">{{ news.title|truncate(60) }}</h6>
+                                            <div class="d-flex text-muted small">
+                                                <span class="me-3"><i class="far fa-clock me-1"></i>{{ news.published_at|format_datetime }}</span>
+                                                {% if news.country %}
+                                                    <span><i class="fas fa-globe me-1"></i>{{ news.country.name }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="p-4 text-center">
+                                    <p>No breaking news at the moment.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Telegram Integration -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fab fa-telegram me-2 text-primary"></i>Telegram Bot Integration</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5>Staff Panel Bot Instructions</h5>
+                            <p>
+                                Use our Telegram Staff Bot to manage news articles directly from your phone.
+                                Just send the following commands to the bot:
+                            </p>
+                            <ul>
+                                <li><code>/login</code> - Login with your staff credentials</li>
+                                <li><code>/addnews</code> - Add a new article (follow the prompts)</li>
+                                <li><code>/newslist</code> - View recent news articles</li>
+                                <li><code>/breaking &lt;news_id&gt;</code> - Mark an article as breaking news</li>
+                                <li><code>/translate &lt;news_id&gt;</code> - Generate translations for an article</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <i class="fab fa-telegram fa-6x text-primary mb-3"></i>
+                            <div>
+                                <a href="#" class="btn btn-primary">
+                                    <i class="fas fa-external-link-alt me-1"></i> Connect to Staff Bot
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div id="alertsContainer" class="position-fixed bottom-0 end-0 p-3" style="z-index: 11"></div>
+{% endblock %}
